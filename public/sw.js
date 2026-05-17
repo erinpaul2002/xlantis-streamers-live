@@ -1,8 +1,6 @@
-const SHELL_CACHE = "xlantis-live-shell-v1";
-const ASSET_CACHE = "xlantis-live-assets-v1";
+const SHELL_CACHE = "xlantis-live-shell-v2";
+const ASSET_CACHE = "xlantis-live-assets-v2";
 const STATIC_SHELL_ASSETS = [
-  "/",
-  "/request",
   "/manifest.webmanifest",
   "/icon-192.png",
   "/icon-512.png",
@@ -50,13 +48,15 @@ function isStaticAssetRequest(request, url) {
 async function cacheNavigation(request) {
   try {
     const response = await fetch(request);
-    const cache = await caches.open(SHELL_CACHE);
 
-    cache.put(request, response.clone());
+    if (response.ok) {
+      const cache = await caches.open(SHELL_CACHE);
+      cache.put(request, response.clone());
+    }
 
     return response;
   } catch {
-    return (await caches.match(request)) || (await caches.match("/")) || Response.error();
+    return (await caches.match(request)) || Response.error();
   }
 }
 

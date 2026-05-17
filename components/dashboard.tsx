@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useEffectEvent, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { PlatformChooserModal, type PlatformChooserOption } from "@/components/platform-chooser-modal";
 import { PublicSiteHeader } from "@/components/public-site-header";
 import { useOnlineStatus } from "@/lib/use-online-status";
@@ -373,7 +373,7 @@ function FilterButton({
   return (
     <button
       className={[
-        "h-9 rounded-md px-3 text-sm font-bold transition",
+        "h-8 shrink-0 rounded-full px-3 text-xs font-bold transition sm:h-9 sm:rounded-md sm:text-sm",
         isActive
           ? "bg-white text-black"
           : "bg-[#1a1f25] text-[#aeb4bc] hover:bg-[#262d35] hover:text-white",
@@ -399,6 +399,10 @@ export function Dashboard({ initialNow, initialStatus }: DashboardProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [chooserStreamerId, setChooserStreamerId] = useState<string | null>(null);
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const lastScrollYRef = useRef(0);
+  const lastToggleScrollYRef = useRef(0);
   const isOnline = useOnlineStatus();
   const clientError = isOnline ? refreshError : offlineStatusMessage;
 
@@ -456,6 +460,45 @@ export function Dashboard({ initialNow, initialStatus }: DashboardProps) {
       return () => window.clearTimeout(refreshTimeout);
     }
   }, [isOnline]);
+
+  useEffect(() => {
+    lastScrollYRef.current = window.scrollY;
+    lastToggleScrollYRef.current = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const delta = currentScrollY - lastScrollYRef.current;
+
+      setShowBackToTop(currentScrollY > 520);
+
+      setIsHeaderCollapsed((currentState) => {
+        if (!currentState) {
+          if (currentScrollY > 160 && delta > 6) {
+            lastToggleScrollYRef.current = currentScrollY;
+            return true;
+          }
+
+          return false;
+        }
+
+        const scrolledUpEnough = lastToggleScrollYRef.current - currentScrollY > 96;
+
+        if (currentScrollY < 64 || (delta < -10 && scrolledUpEnough)) {
+          lastToggleScrollYRef.current = currentScrollY;
+          return false;
+        }
+
+        return true;
+      });
+
+      lastScrollYRef.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const allStatuses = useMemo(() => [...status.live, ...status.offline], [status]);
   const statusesByStreamer = useMemo(() => buildStatusesByStreamer(allStatuses), [allStatuses]);
@@ -515,13 +558,38 @@ export function Dashboard({ initialNow, initialStatus }: DashboardProps) {
         title="Xlantis Live"
         subtitle="Curated GTA RP streams across Kick and YouTube"
         sticky
+        collapsed={isHeaderCollapsed}
         brandImage={activeHeaderBrand}
+        mobileTopAction={
+          <Link
+            className="grid h-10 w-10 place-items-center rounded-full border border-[#53fc18]/50 bg-[#53fc18]/12 text-sm font-black text-[#8dff63] transition hover:border-[#53fc18] hover:bg-[#53fc18] hover:text-black"
+            href="/request"
+            aria-label="Request streamer"
+            title="Request streamer"
+          >
+            <svg
+              aria-hidden="true"
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M15 19a4 4 0 0 0-8 0" />
+              <circle cx="11" cy="8" r="3" />
+              <path d="M19 8v6" />
+              <path d="M16 11h6" />
+            </svg>
+          </Link>
+        }
         action={
-          <div className="flex w-full flex-col gap-3 sm:flex-row lg:max-w-3xl">
+          <div className="flex w-full flex-col gap-2 sm:flex-row lg:max-w-3xl">
             <div className="relative min-w-0 flex-1">
-              <span className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-2 border-[#aeb4bc]" />
+              <span className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 border-[#aeb4bc] sm:left-4 sm:h-4 sm:w-4" />
               <input
-                className="h-11 w-full rounded-md border border-white/18 bg-[#101419] px-11 text-base font-semibold text-white outline-none transition placeholder:text-[#7f8791] focus:border-[#53fc18] focus:ring-2 focus:ring-[#53fc18]/20 sm:h-12"
+                className="h-10 w-full rounded-xl border border-white/18 bg-[#101419] px-10 text-sm font-semibold text-white outline-none transition placeholder:text-[#7f8791] focus:border-[#53fc18] focus:ring-2 focus:ring-[#53fc18]/20 sm:h-12 sm:rounded-md sm:px-11 sm:text-base"
                 placeholder="Search streamers, titles, categories"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
@@ -529,16 +597,19 @@ export function Dashboard({ initialNow, initialStatus }: DashboardProps) {
             </div>
 
             <Link
-              className="grid h-11 shrink-0 place-items-center rounded-md border border-[#53fc18]/50 bg-[#53fc18]/12 px-4 text-sm font-black text-[#8dff63] transition hover:border-[#53fc18] hover:bg-[#53fc18] hover:text-black sm:h-12"
+              className="hidden h-12 shrink-0 place-items-center rounded-md border border-[#53fc18]/50 bg-[#53fc18]/12 px-4 text-sm font-black text-[#8dff63] transition hover:border-[#53fc18] hover:bg-[#53fc18] hover:text-black sm:grid"
               href="/request"
+              aria-label="Request streamer"
+              title="Request streamer"
             >
-              Request streamer
+              <span>Request streamer</span>
             </Link>
           </div>
         }
       >
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+          <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex min-w-max gap-2">
             {platformFilters.map((item) => (
               <FilterButton
                 key={item.value}
@@ -553,9 +624,11 @@ export function Dashboard({ initialNow, initialStatus }: DashboardProps) {
                 }}
               />
             ))}
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex min-w-max gap-2">
             {groupFilters.map((item) => (
               <FilterButton
                 key={item.value}
@@ -564,40 +637,47 @@ export function Dashboard({ initialNow, initialStatus }: DashboardProps) {
                 onClick={() => setGroup(item.value)}
               />
             ))}
+            </div>
           </div>
         </div>
       </PublicSiteHeader>
 
-      <section className="mx-auto max-w-[1800px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <div className="mb-6 flex flex-col gap-3 border-b border-white/10 pb-5 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h2 className="text-3xl font-black tracking-normal text-white">
+      <section className="mx-auto max-w-[1800px] px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+        <div className="mb-4 border-b border-white/10 pb-4 md:mb-6 md:pb-5">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-2xl font-black tracking-normal text-white sm:text-3xl">
               <span className="text-[#00e7ff]">Streams</span> For You
             </h2>
-            <p className="mt-2 text-sm font-semibold text-[#8c949d]">
-              {isShowingOfflineState
-                ? "Offline mode. Reconnect to load current live stream status."
-                : `${liveCount} live, ${offlineCount} offline. Updated ${formatRelativeTime(status.lastUpdatedAt, "Just checked", now)}.`}
-            </p>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {clientError && !isShowingOfflineState ? (
-              <span className="rounded-md bg-[#ff3030]/12 px-3 py-2 text-sm font-bold text-[#ff8888]">
-                {clientError}
-              </span>
-            ) : null}
-            {isShowingOfflineState ? (
-              <span className="rounded-md bg-[#ffd166]/12 px-3 py-2 text-sm font-bold text-[#ffe6a3]">Offline mode</span>
-            ) : null}
             <button
-              className="h-10 rounded-md bg-[#53fc18] px-4 text-sm font-black text-black transition hover:bg-[#7cff4c] disabled:cursor-wait disabled:opacity-70"
+              className="h-9 shrink-0 rounded-xl bg-[#53fc18] px-4 text-xs font-black text-black transition hover:bg-[#7cff4c] disabled:cursor-wait disabled:opacity-70 sm:h-10 sm:rounded-md sm:text-sm"
               type="button"
               onClick={refreshStatus}
               disabled={isRefreshing || !isOnline}
             >
               {isOnline ? (isRefreshing ? "Refreshing" : "Refresh") : "Offline"}
             </button>
+          </div>
+
+          <div className="mt-2 flex flex-col gap-2 sm:mt-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
+            <p className="text-xs font-semibold text-[#8c949d] sm:text-sm">
+              {isShowingOfflineState
+                ? "Offline mode. Reconnect to load current live stream status."
+                : `${liveCount} live, ${offlineCount} offline. Updated ${formatRelativeTime(status.lastUpdatedAt, "Just checked", now)}.`}
+            </p>
+
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              {clientError && !isShowingOfflineState ? (
+                <span className="rounded-xl bg-[#ff3030]/12 px-3 py-2 text-xs font-bold text-[#ff8888] sm:rounded-md sm:text-sm">
+                  {clientError}
+                </span>
+              ) : null}
+              {isShowingOfflineState ? (
+                <span className="rounded-xl bg-[#ffd166]/12 px-3 py-2 text-xs font-bold text-[#ffe6a3] sm:rounded-md sm:text-sm">
+                  Offline mode
+                </span>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -634,6 +714,18 @@ export function Dashboard({ initialNow, initialStatus }: DashboardProps) {
           options={chooserOptions}
           onClose={() => setChooserStreamerId(null)}
         />
+      ) : null}
+
+      {showBackToTop ? (
+        <button
+          className="fixed bottom-5 right-4 z-30 grid h-11 w-11 place-items-center rounded-full border border-white/12 bg-[#11161b]/92 text-lg font-black text-white shadow-[0_18px_40px_rgba(0,0,0,0.38)] backdrop-blur sm:bottom-6 sm:right-6"
+          type="button"
+          aria-label="Back to top"
+          title="Back to top"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          ^
+        </button>
       ) : null}
     </main>
   );

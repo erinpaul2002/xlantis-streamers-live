@@ -51,11 +51,18 @@ function isSafariBrowser() {
 export function MobileInstallCta() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [helperMessage, setHelperMessage] = useState<string | null>(null);
   const isiOSSafari = useMemo(() => isAppleMobileDevice() && isSafariBrowser(), []);
 
   useEffect(() => {
+    try {
+      setIsDismissed(window.localStorage.getItem("xlantis-live-install-cta-dismissed") === "true");
+    } catch {
+      setIsDismissed(false);
+    }
+
     const displayModeQuery = window.matchMedia("(display-mode: standalone)");
 
     const syncInstallState = () => {
@@ -106,7 +113,17 @@ export function MobileInstallCta() {
     setIsPanelOpen((current) => !current);
   }
 
-  if (isInstalled) {
+  function handleDismiss() {
+    setIsDismissed(true);
+
+    try {
+      window.localStorage.setItem("xlantis-live-install-cta-dismissed", "true");
+    } catch {
+      // Ignore storage errors and just dismiss for the current session.
+    }
+  }
+
+  if (isInstalled || isDismissed) {
     return null;
   }
 
@@ -132,24 +149,34 @@ export function MobileInstallCta() {
 
   return (
     <div className="md:hidden">
-      <div className="overflow-hidden rounded-2xl border border-[#53fc18]/22 bg-[linear-gradient(135deg,rgba(83,252,24,0.16),rgba(8,10,13,0.95)_58%)] shadow-[0_18px_40px_rgba(0,0,0,0.28)]">
-        <div className="flex items-center justify-between gap-3 px-4 py-3">
+      <div className="overflow-hidden rounded-2xl border border-[#53fc18]/18 bg-[linear-gradient(135deg,rgba(83,252,24,0.12),rgba(8,10,13,0.96)_58%)] shadow-[0_12px_28px_rgba(0,0,0,0.22)]">
+        <div className="flex items-center justify-between gap-3 px-3 py-2.5">
           <div className="min-w-0">
-            <div className="text-[11px] font-black uppercase tracking-[0.18em] text-[#8dff63]">Mobile app</div>
-            <p className="mt-1 text-sm font-bold text-white">Install Xlantis Live on your phone</p>
+            <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#8dff63]">Mobile app</div>
+            <p className="mt-0.5 text-xs font-bold text-white sm:text-sm">Install Xlantis Live on your phone</p>
           </div>
 
-          <button
-            className="flex h-11 shrink-0 items-center justify-center rounded-xl bg-[#53fc18] px-4 text-sm font-black text-black transition active:scale-[0.98]"
-            type="button"
-            onClick={() => void handleInstallClick()}
-          >
-            Install app
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              className="flex h-9 items-center justify-center rounded-lg bg-[#53fc18] px-3 text-xs font-black text-black transition active:scale-[0.98]"
+              type="button"
+              onClick={() => void handleInstallClick()}
+            >
+              Install app
+            </button>
+            <button
+              className="grid h-8 w-8 place-items-center rounded-full border border-white/10 bg-white/6 text-[10px] font-black text-[#d5dbe2]"
+              type="button"
+              onClick={handleDismiss}
+              aria-label="Dismiss install prompt"
+            >
+              X
+            </button>
+          </div>
         </div>
 
         {(isPanelOpen || helperMessage) ? (
-          <div className="border-t border-white/10 bg-black/16 px-4 py-3">
+          <div className="border-t border-white/10 bg-black/16 px-3 py-2.5">
             <div className="grid gap-2">
               {helperMessage ? <p className="text-sm font-semibold text-[#d5dbe2]">{helperMessage}</p> : panelBody}
             </div>
