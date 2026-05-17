@@ -45,7 +45,9 @@ export async function GET(request: NextRequest) {
   return new NextResponse(response.body, {
     status: 200,
     headers: {
-      "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
+      "Cache-Control": "private, no-store, max-age=0, must-revalidate",
+      "CDN-Cache-Control": "no-store",
+      "Netlify-CDN-Cache-Control": "no-store",
       "Content-Type": response.headers.get("Content-Type") ?? "image/jpeg",
     },
   });

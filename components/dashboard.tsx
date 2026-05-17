@@ -120,22 +120,14 @@ function platformPriority(platform: Platform) {
   return platform === "kick" ? 0 : 1;
 }
 
-function proxiedImageUrl(value: string | undefined) {
-  if (!value || value.startsWith("data:")) {
+function getDisplayImageUrl(value: string | undefined) {
+  if (!value) {
     return value;
   }
 
-  try {
-    const url = new URL(value);
-
-    if (url.protocol !== "https:") {
-      return value;
-    }
-
-    return `/api/image?url=${encodeURIComponent(value)}`;
-  } catch {
-    return value;
-  }
+  // Netlify was serving the same cached /api/image response for different query strings
+  // in production. Using the original asset URL keeps each streamer image distinct.
+  return value;
 }
 
 function filterStatus(
@@ -231,7 +223,7 @@ function buildChooserOptions(statuses: StreamStatus[]): PlatformChooserOption[] 
 }
 
 function Thumbnail({ status }: { status: StreamStatus }) {
-  const imageUrl = proxiedImageUrl(status.thumbnailUrl);
+  const imageUrl = getDisplayImageUrl(status.thumbnailUrl);
 
   return (
     <div
@@ -274,7 +266,7 @@ function StreamerCard({
   action: StreamerCardAction;
 }) {
   const platformAccent = status.platform === "kick" ? "group-hover:text-[#53fc18]" : "group-hover:text-[#ff3b3b]";
-  const avatarUrl = proxiedImageUrl(status.avatarUrl);
+  const avatarUrl = getDisplayImageUrl(status.avatarUrl);
   const title =
     action.kind === "choose"
       ? `${status.displayName}: choose Kick or YouTube`
