@@ -1,16 +1,7 @@
 import { Dashboard } from "@/components/dashboard";
-import { getStatusResponse } from "@/lib/status-service";
-import type { StatusResponse } from "@/types/status";
+import { createEmptyStatusResponse, getStatusResponse } from "@/lib/status-service";
 
 export const dynamic = "force-dynamic";
-
-function createEmptyStatusResponse(): StatusResponse {
-  return {
-    live: [],
-    offline: [],
-    lastUpdatedAt: "",
-  };
-}
 
 export default async function Home() {
   const initialNow = new Date().toISOString();

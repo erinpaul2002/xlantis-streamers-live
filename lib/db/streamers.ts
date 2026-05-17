@@ -1,5 +1,6 @@
 import { api } from "@/convex/_generated/api";
 import { requireConvexClient } from "@/lib/convex/client";
+import configuredStreamers from "@/config/streamers.json";
 import type { PlatformStreamer, Streamer } from "@/types/streamer";
 
 type StreamerRecord = Streamer & {
@@ -33,6 +34,10 @@ function isActiveStreamer(streamer: Streamer) {
 
 function compareByName(a: { displayName: string }, b: { displayName: string }) {
   return a.displayName.localeCompare(b.displayName);
+}
+
+function getConfiguredActiveStreamers(): Streamer[] {
+  return (configuredStreamers as Streamer[]).map(toStreamer).filter(isActiveStreamer).sort(compareByName);
 }
 
 function toStreamer(streamer: StreamerRecord): Streamer {
@@ -97,10 +102,15 @@ export function expandStreamerPlatforms(streamers: Streamer[]): PlatformStreamer
 }
 
 export async function getStreamers(): Promise<Streamer[]> {
-  const client = requireConvexClient();
-  const dbStreamers = await client.query(api.streamers.listActive, {});
+  try {
+    const client = requireConvexClient();
+    const dbStreamers = await client.query(api.streamers.listActive, {});
 
-  return dbStreamers.map(toStreamer).filter(isActiveStreamer).sort(compareByName);
+    return dbStreamers.map(toStreamer).filter(isActiveStreamer).sort(compareByName);
+  } catch (error) {
+    console.error("Falling back to configured streamers because Convex could not be queried.", error);
+    return getConfiguredActiveStreamers();
+  }
 }
 
 export async function getAdminStreamers(): Promise<AdminStreamer[]> {

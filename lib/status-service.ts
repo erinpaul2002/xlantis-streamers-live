@@ -9,6 +9,14 @@ const STATUS_TTL_MS = 60_000;
 
 let statusCache: CacheEntry<StatusResponse> | null = null;
 
+export function createEmptyStatusResponse(): StatusResponse {
+  return {
+    live: [],
+    offline: [],
+    lastUpdatedAt: "",
+  };
+}
+
 function compareStatuses(a: StreamStatus, b: StreamStatus) {
   const byName = a.displayName.localeCompare(b.displayName);
 

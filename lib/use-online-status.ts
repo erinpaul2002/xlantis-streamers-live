@@ -11,7 +11,7 @@ function readOnlineStatus() {
 }
 
 export function useOnlineStatus() {
-  const [isOnline, setIsOnline] = useState(readOnlineStatus);
+  const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
     const syncOnlineStatus = () => {

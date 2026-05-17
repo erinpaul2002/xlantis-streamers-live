@@ -50,7 +50,7 @@ function isSafariBrowser() {
 
 export function MobileInstallCta() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(() => isStandaloneDisplayMode());
+  const [isInstalled, setIsInstalled] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [helperMessage, setHelperMessage] = useState<string | null>(null);
   const isiOSSafari = useMemo(() => isAppleMobileDevice() && isSafariBrowser(), []);
