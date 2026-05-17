@@ -1,0 +1,305 @@
+[
+  {
+    "id": "tva-eaglegaming",
+    "displayName": "EagleGaming",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "eaglegaming",
+      "profileUrl": "https://kick.com/eaglegaming"
+    },
+    "youtube": {
+      "handle": "@eaglegamingop",
+      "profileUrl": "https://www.youtube.com/@eaglegamingop"
+    }
+  },
+  {
+    "id": "tva-dreamergaming",
+    "displayName": "DreamerGaming",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "dreamergaming",
+      "profileUrl": "https://kick.com/dreamergaming"
+    },
+    "youtube": {
+      "handle": "@DREAMERofficial",
+      "profileUrl": "https://www.youtube.com/@DREAMERofficial"
+    }
+  },
+  {
+    "id": "tva-blindjoker",
+    "displayName": "BlindJoker",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "blindjoker",
+      "profileUrl": "https://kick.com/blindjoker"
+    },
+    "youtube": {
+      "handle": "@blindjoker",
+      "profileUrl": "https://www.youtube.com/@blindjoker"
+    }
+  },
+  {
+    "id": "tva-mrzgoku",
+    "displayName": "MrzGoku",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "mrzgoku",
+      "profileUrl": "https://kick.com/mrzgoku"
+    },
+    "youtube": {
+      "handle": "@MarZellusMrZ",
+      "profileUrl": "https://www.youtube.com/@MarZellusMrZ"
+    }
+  },
+  {
+    "id": "tva-killuaa",
+    "displayName": "KilluaaGaming",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "killuaagaming",
+      "profileUrl": "https://kick.com/killuaagaming"
+    },
+    "youtube": {
+      "handle": "@Killuaa",
+      "profileUrl": "https://www.youtube.com/@Killuaa"
+    }
+  },
+  {
+    "id": "tva-boboygaming",
+    "displayName": "BoboyGamingTVA",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "boboygamingtva",
+      "profileUrl": "https://kick.com/boboygamingtva"
+    },
+    "youtube": {
+      "handle": "@BOBOYGAMING",
+      "profileUrl": "https://www.youtube.com/@BOBOYGAMING"
+    }
+  },
+  {
+    "id": "tva-sp4hari",
+    "displayName": "Sp4Hari",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "sp4hari",
+      "profileUrl": "https://kick.com/sp4hari"
+    }
+  },
+  {
+    "id": "tva-savage",
+    "displayName": "SavageTVA",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "savagetva",
+      "profileUrl": "https://kick.com/savagetva"
+    },
+    "youtube": {
+      "handle": "@Savage-eee",
+      "profileUrl": "https://www.youtube.com/@Savage-eee"
+    }
+  },
+  {
+    "id": "tva-snipe",
+    "displayName": "SnipeTVA",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "snipetva",
+      "profileUrl": "https://kick.com/snipetva"
+    },
+    "youtube": {
+      "handle": "@snipegaming-",
+      "profileUrl": "https://www.youtube.com/@snipegaming-"
+    }
+  },
+  {
+    "id": "tva-tvaneel",
+    "displayName": "TVANeel",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "tvaneel",
+      "profileUrl": "https://kick.com/tvaneel"
+    }
+  },
+  {
+    "id": "tva-tvaraayan",
+    "displayName": "TVARaayan",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "tvaraayan",
+      "profileUrl": "https://kick.com/tvaraayan"
+    }
+  },
+  {
+    "id": "tva-tvasteve",
+    "displayName": "TVASteve",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "tvasteve",
+      "profileUrl": "https://kick.com/tvasteve"
+    },
+    "youtube": {
+      "handle": "@St3veAzr4EL",
+      "profileUrl": "https://www.youtube.com/@St3veAzr4EL"
+    }
+  },
+  {
+    "id": "tva-bravogaming",
+    "displayName": "BravoGaming",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "bravogaming",
+      "profileUrl": "https://kick.com/bravogaming"
+    },
+    "youtube": {
+      "handle": "@ig_bravoo",
+      "profileUrl": "https://www.youtube.com/@ig_bravoo"
+    }
+  },
+  {
+    "id": "tva-txagaming",
+    "displayName": "TXAGaming",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "txagaming",
+      "profileUrl": "https://kick.com/txagaming"
+    },
+    "youtube": {
+      "handle": "@txagamingyt",
+      "profileUrl": "https://www.youtube.com/@txagamingyt"
+    }
+  },
+  {
+    "id": "tva-harithebeast",
+    "displayName": "HariTheBeast",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "harithebeast",
+      "profileUrl": "https://kick.com/harithebeast"
+    }
+  },
+  {
+    "id": "tva-germankannapi",
+    "displayName": "GermanKannapiOG",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "germankannapiog",
+      "profileUrl": "https://kick.com/germankannapiog"
+    },
+    "youtube": {
+      "handle": "@germankannapi5909",
+      "profileUrl": "https://www.youtube.com/@germankannapi5909"
+    }
+  },
+  {
+    "id": "tva-villuuhhh7",
+    "displayName": "Villuuhhh7",
+    "group": "TVA",
+    "isActive": true,
+    "kick": {
+      "slug": "villuuhhh7",
+      "profileUrl": "https://kick.com/villuuhhh7"
+    },
+    "youtube": {
+      "handle": "@villuuhhh7",
+      "profileUrl": "https://www.youtube.com/@villuuhhh7"
+    }
+  },
+  {
+    "id": "tva-lx2pc",
+    "displayName": "LX2PC",
+    "group": "TVA",
+    "isActive": true,
+    "youtube": {
+      "profileUrl": "https://www.youtube.com/@LX2PC%E4%BC%B6"
+    }
+  },
+  {
+    "id": "tva-juggruyt",
+    "displayName": "JUGGRUYT",
+    "group": "TVA",
+    "isActive": true,
+    "youtube": {
+      "handle": "@JUGGRUYT",
+      "profileUrl": "https://www.youtube.com/@JUGGRUYT"
+    }
+  },
+  {
+    "id": "tva-mallu-viner-gaming",
+    "displayName": "Mallu Viner Gaming",
+    "group": "TVA",
+    "isActive": true,
+    "youtube": {
+      "handle": "@Mallu_Viner_Gaming",
+      "profileUrl": "https://www.youtube.com/@Mallu_Viner_Gaming"
+    }
+  },
+  {
+    "id": "tva-shoutxgaming",
+    "displayName": "ShoutXGaming",
+    "group": "TVA",
+    "isActive": true,
+    "youtube": {
+      "handle": "@shoutxgaming",
+      "profileUrl": "https://www.youtube.com/@shoutxgaming"
+    }
+  },
+  {
+    "id": "others-blindrebel",
+    "displayName": "BlindRebel",
+    "group": "Others",
+    "isActive": true,
+    "kick": {
+      "slug": "blindrebel",
+      "profileUrl": "https://kick.com/blindrebel"
+    },
+    "youtube": {
+      "handle": "@BLINDRebeL",
+      "profileUrl": "https://www.youtube.com/@BLINDRebeL"
+    }
+  },
+  {
+    "id": "others-cupcakegaming",
+    "displayName": "CupcakeGamingOG",
+    "group": "Others",
+    "isActive": true,
+    "kick": {
+      "slug": "cupcakegamingog",
+      "profileUrl": "https://kick.com/cupcakegamingog"
+    },
+    "youtube": {
+      "handle": "@cupcakegamingyt",
+      "profileUrl": "https://www.youtube.com/@cupcakegamingyt"
+    }
+  },
+  {
+    "id": "others-brightfox",
+    "displayName": "BrightFox",
+    "group": "Others",
+    "isActive": true,
+    "kick": {
+      "slug": "brightfox_yt",
+      "profileUrl": "https://kick.com/brightfox_yt"
+    },
+    "youtube": {
+      "handle": "@BrightFox",
+      "profileUrl": "https://www.youtube.com/@BrightFox"
+    }
+  }
+]
