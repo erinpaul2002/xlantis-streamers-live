@@ -329,7 +329,7 @@ function parseLivePage(page: FetchedPage) {
     extractWatchVideoId(page.url) ??
     extractWatchVideoId(canonicalUrl) ??
     extractWatchVideoId(shortLinkUrl) ??
-    decodePageValue(page.html.match(/"watchEndpoint":\{"videoId":"([^"]+)"/)?.[1]) ??
+    decodePageValue(page.html.match(/window\['ytCommand'\]\s*=\s*\{[\s\S]*?"watchEndpoint":\{"videoId":"([^"]+)"/)?.[1]) ??
     decodePageValue(page.html.match(/"videoDetails":\{"videoId":"([^"]+)"/)?.[1]) ??
     decodePageValue(page.html.match(/"currentVideoEndpoint":\{"watchEndpoint":\{"videoId":"([^"]+)"/)?.[1]);
   const viewerCount = parseViewerCount(page.html);
