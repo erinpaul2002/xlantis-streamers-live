@@ -15,7 +15,7 @@ const processes = [
     name: "next",
     color: "\x1b[36m",
     command: npx,
-    args: ["next", "dev"],
+    args: ["next", "dev", "-H", "0.0.0.0"],
   },
 ];
 

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { AppEntryLoader } from "@/components/loading/app-entry-loader";
 import { ServiceWorkerRegistrar } from "@/components/service-worker-registrar";
 
 export const metadata: Metadata = {
@@ -54,6 +55,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
+        <AppEntryLoader />
         {children}
         <ServiceWorkerRegistrar />
       </body>
