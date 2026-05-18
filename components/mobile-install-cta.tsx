@@ -49,6 +49,7 @@ function isSafariBrowser() {
 }
 
 export function MobileInstallCta() {
+  const [hasHydrated, setHasHydrated] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -57,13 +58,19 @@ export function MobileInstallCta() {
   const isiOSSafari = useMemo(() => isAppleMobileDevice() && isSafariBrowser(), []);
 
   useEffect(() => {
-    try {
-      setIsDismissed(window.localStorage.getItem("xlantis-live-install-cta-dismissed") === "true");
-    } catch {
-      setIsDismissed(false);
-    }
-
     const displayModeQuery = window.matchMedia("(display-mode: standalone)");
+
+    const hydrateState = () => {
+      setHasHydrated(true);
+
+      try {
+        setIsDismissed(window.localStorage.getItem("xlantis-live-install-cta-dismissed") === "true");
+      } catch {
+        setIsDismissed(false);
+      }
+
+      setIsInstalled(isStandaloneDisplayMode());
+    };
 
     const syncInstallState = () => {
       setIsInstalled(isStandaloneDisplayMode());
@@ -82,12 +89,13 @@ export function MobileInstallCta() {
       setHelperMessage(null);
     };
 
-    syncInstallState();
+    const hydrateTimer = window.setTimeout(hydrateState, 0);
     displayModeQuery.addEventListener("change", syncInstallState);
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
+      window.clearTimeout(hydrateTimer);
       displayModeQuery.removeEventListener("change", syncInstallState);
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleAppInstalled);
@@ -123,7 +131,7 @@ export function MobileInstallCta() {
     }
   }
 
-  if (isInstalled || isDismissed) {
+  if (!hasHydrated || isInstalled || isDismissed) {
     return null;
   }
 
