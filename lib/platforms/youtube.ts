@@ -48,6 +48,11 @@ type ResolvedYouTubeChannel = {
   bannerUrl?: string;
 };
 
+type FetchedPage = {
+  html: string;
+  url: string;
+};
+
 const API_BACKOFF_MS = 5 * 60_000;
 
 let apiBackoffUntil = 0;
@@ -212,7 +217,7 @@ function offlineStatus(
   };
 }
 
-async function fetchText(url: string) {
+async function fetchPage(url: string): Promise<FetchedPage> {
   const response = await fetch(url, {
     headers: {
       Accept: "text/html",
@@ -227,7 +232,10 @@ async function fetchText(url: string) {
     throw new Error(`YouTube page returned ${response.status}`);
   }
 
-  return response.text();
+  return {
+    html: await response.text(),
+    url: response.url,
+  };
 }
 
 async function fetchJson<T>(url: URL): Promise<T> {
@@ -282,23 +290,52 @@ async function resolveChannelFromPage(streamer: PlatformStreamer) {
   }
 
   try {
-    return parseChannelPage(await fetchText(profileUrl));
+    return parseChannelPage((await fetchPage(profileUrl)).html);
   } catch {
     return undefined;
   }
 }
 
-function parseLivePage(html: string) {
+function extractWatchVideoId(value: string | undefined) {
+  if (!value) {
+    return undefined;
+  }
+
+  try {
+    const url = new URL(value, "https://www.youtube.com");
+    const host = url.hostname.replace(/^www\./, "").toLowerCase();
+
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      return nonEmpty(url.searchParams.get("v") ?? undefined) ?? undefined;
+    }
+
+    if (host === "youtu.be") {
+      return nonEmpty(url.pathname.split("/").filter(Boolean)[0]) ?? undefined;
+    }
+
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function parseLivePage(page: FetchedPage) {
+  const canonicalUrl =
+    decodePageValue(page.html.match(/<meta property="og:url" content="([^"]+)"/)?.[1]) ??
+    decodePageValue(page.html.match(/<link rel="canonical" href="([^"]+)"/)?.[1]) ??
+    decodePageValue(page.html.match(/"canonicalUrl":"([^"]+)"/)?.[1]);
   const videoId =
-    decodePageValue(html.match(/"videoId":"([^"]+)"/)?.[1]) ??
-    decodePageValue(html.match(/watch\?v=([\w-]+)/)?.[1]);
-  const viewerCount = parseViewerCount(html);
+    extractWatchVideoId(page.url) ??
+    extractWatchVideoId(canonicalUrl) ??
+    decodePageValue(page.html.match(/"videoDetails":\{"videoId":"([^"]+)"/)?.[1]) ??
+    decodePageValue(page.html.match(/"currentVideoEndpoint":\{"watchEndpoint":\{"videoId":"([^"]+)"/)?.[1]);
+  const viewerCount = parseViewerCount(page.html);
 
   const isLive =
-    html.includes('"isLiveNow":true') ||
-    html.includes('"isLiveContent":true') ||
-    html.includes('"style":"LIVE"') ||
-    html.includes('"text":"LIVE"');
+    page.html.includes('"isLiveNow":true') ||
+    page.html.includes('"isLiveContent":true') ||
+    page.html.includes('"style":"LIVE"') ||
+    page.html.includes('"text":"LIVE"');
 
   if (!videoId || !isLive) {
     return undefined;
@@ -307,11 +344,11 @@ function parseLivePage(html: string) {
   return {
     videoId,
     title:
-      decodePageValue(html.match(/<meta property="og:title" content="([^"]+)"/)?.[1]) ??
-      decodePageValue(html.match(/"title":"([^"]+)"/)?.[1]) ??
+      decodePageValue(page.html.match(/<meta property="og:title" content="([^"]+)"/)?.[1]) ??
+      decodePageValue(page.html.match(/"title":"([^"]+)"/)?.[1]) ??
       "Live now",
     thumbnailUrl:
-      decodePageValue(html.match(/<meta property="og:image" content="([^"]+)"/)?.[1]) ??
+      decodePageValue(page.html.match(/<meta property="og:image" content="([^"]+)"/)?.[1]) ??
       `https://i.ytimg.com/vi/${videoId}/maxresdefault_live.jpg`,
     viewerCount,
   };
@@ -356,7 +393,7 @@ async function fetchLiveStatusFromPage(
   }
 
   try {
-    const live = parseLivePage(await fetchText(liveUrl));
+    const live = parseLivePage(await fetchPage(liveUrl));
 
     if (!live) {
       return undefined;
