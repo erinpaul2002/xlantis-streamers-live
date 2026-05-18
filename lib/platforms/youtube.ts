@@ -324,9 +324,12 @@ function parseLivePage(page: FetchedPage) {
     decodePageValue(page.html.match(/<meta property="og:url" content="([^"]+)"/)?.[1]) ??
     decodePageValue(page.html.match(/<link rel="canonical" href="([^"]+)"/)?.[1]) ??
     decodePageValue(page.html.match(/"canonicalUrl":"([^"]+)"/)?.[1]);
+  const shortLinkUrl = decodePageValue(page.html.match(/<link rel="shortlinkUrl" href="([^"]+)"/)?.[1]);
   const videoId =
     extractWatchVideoId(page.url) ??
     extractWatchVideoId(canonicalUrl) ??
+    extractWatchVideoId(shortLinkUrl) ??
+    decodePageValue(page.html.match(/"watchEndpoint":\{"videoId":"([^"]+)"/)?.[1]) ??
     decodePageValue(page.html.match(/"videoDetails":\{"videoId":"([^"]+)"/)?.[1]) ??
     decodePageValue(page.html.match(/"currentVideoEndpoint":\{"watchEndpoint":\{"videoId":"([^"]+)"/)?.[1]);
   const viewerCount = parseViewerCount(page.html);
@@ -334,6 +337,9 @@ function parseLivePage(page: FetchedPage) {
   const isLive =
     page.html.includes('"isLiveNow":true') ||
     page.html.includes('"isLiveContent":true') ||
+    page.html.includes('"isLiveBroadcast" content="True"') ||
+    page.html.includes('"liveStreamabilityRenderer"') ||
+    page.html.includes('"is_viewed_live","value":"True"') ||
     page.html.includes('"style":"LIVE"') ||
     page.html.includes('"text":"LIVE"');
 
