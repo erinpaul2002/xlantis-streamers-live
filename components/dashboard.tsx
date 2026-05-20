@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useInitialLoadController } from "@/components/loading/initial-load-context";
 import { PlatformChooserModal, type PlatformChooserOption } from "@/components/platform-chooser-modal";
 import { PublicSiteHeader } from "@/components/public-site-header";
 import { useOnlineStatus } from "@/lib/use-online-status";
@@ -10,7 +11,6 @@ import type { StatusResponse, StreamStatus } from "@/types/status";
 
 type DashboardProps = {
   initialNow: string;
-  initialStatus: StatusResponse;
 };
 
 type PlatformFilter = "all" | Platform;
@@ -378,8 +378,13 @@ function FilterButton({
   );
 }
 
-export function Dashboard({ initialNow, initialStatus }: DashboardProps) {
-  const [status, setStatus] = useState(initialStatus);
+export function Dashboard({ initialNow }: DashboardProps) {
+  const { settleInitialLoad } = useInitialLoadController();
+  const [status, setStatus] = useState<StatusResponse>({
+    live: [],
+    offline: [],
+    lastUpdatedAt: "",
+  });
   const [now, setNow] = useState(() => {
     const timestamp = new Date(initialNow).getTime();
 
@@ -393,17 +398,37 @@ export function Dashboard({ initialNow, initialStatus }: DashboardProps) {
   const [chooserStreamerId, setChooserStreamerId] = useState<string | null>(null);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [initialLoadState, setInitialLoadState] = useState<"loading" | "ready" | "error">("loading");
   const lastScrollYRef = useRef(0);
   const lastToggleScrollYRef = useRef(0);
   const isOnline = useOnlineStatus();
+  const wasOnlineRef = useRef(isOnline);
   const clientError = isOnline ? refreshError : offlineStatusMessage;
+  const hasLoadedStatus =
+    status.live.length > 0 || status.offline.length > 0 || Boolean(status.lastUpdatedAt);
 
-  async function refreshStatus() {
+  function ensureStatusPayload(payload: StatusResponse) {
+    if (payload.live.length || payload.offline.length || payload.lastUpdatedAt) {
+      return payload;
+    }
+
+    throw new Error("Status data is unavailable right now");
+  }
+
+  async function refreshStatus({ initial = false }: { initial?: boolean } = {}) {
     if (!isOnline) {
+      if (initial) {
+        setInitialLoadState("error");
+        settleInitialLoad();
+      }
+
       return;
     }
 
-    setIsRefreshing(true);
+    if (!initial) {
+      setIsRefreshing(true);
+    }
+
     setRefreshError(null);
 
     try {
@@ -415,16 +440,30 @@ export function Dashboard({ initialNow, initialStatus }: DashboardProps) {
         throw new Error(`Status endpoint returned ${response.status}`);
       }
 
-      setStatus((await response.json()) as StatusResponse);
+      const payload = ensureStatusPayload((await response.json()) as StatusResponse);
+
+      setStatus(payload);
+      setInitialLoadState("ready");
     } catch (error) {
       setRefreshError(error instanceof Error ? error.message : "Refresh failed");
+      if (initial || !hasLoadedStatus) {
+        setInitialLoadState("error");
+      }
     } finally {
-      setIsRefreshing(false);
+      if (initial) {
+        settleInitialLoad();
+      } else {
+        setIsRefreshing(false);
+      }
     }
   }
 
   const runRefresh = useEffectEvent(() => {
     void refreshStatus();
+  });
+
+  const runInitialRefresh = useEffectEvent(() => {
+    void refreshStatus({ initial: true });
   });
 
   useEffect(() => {
@@ -436,22 +475,48 @@ export function Dashboard({ initialNow, initialStatus }: DashboardProps) {
   }, []);
 
   useEffect(() => {
+    if (initialLoadState !== "ready") {
+      return;
+    }
+
     const id = window.setInterval(() => {
       runRefresh();
     }, 60_000);
 
     return () => window.clearInterval(id);
-  }, []);
+  }, [initialLoadState]);
 
   useEffect(() => {
-    if (isOnline) {
-      const refreshTimeout = window.setTimeout(() => {
-        runRefresh();
+    if (initialLoadState !== "loading") {
+      return;
+    }
+
+    if (!isOnline) {
+      const settleTimeout = window.setTimeout(() => {
+        settleInitialLoad();
+        setInitialLoadState("error");
       }, 0);
 
-      return () => window.clearTimeout(refreshTimeout);
+      return () => window.clearTimeout(settleTimeout);
     }
-  }, [isOnline]);
+
+    const refreshTimeout = window.setTimeout(() => {
+      runInitialRefresh();
+    }, 0);
+
+    return () => window.clearTimeout(refreshTimeout);
+  }, [initialLoadState, isOnline, settleInitialLoad]);
+
+  useEffect(() => {
+    const wasOnline = wasOnlineRef.current;
+    wasOnlineRef.current = isOnline;
+
+    if (wasOnline || !isOnline || initialLoadState === "loading") {
+      return;
+    }
+
+    runRefresh();
+  }, [initialLoadState, isOnline]);
 
   useEffect(() => {
     lastScrollYRef.current = window.scrollY;
@@ -644,7 +709,9 @@ export function Dashboard({ initialNow, initialStatus }: DashboardProps) {
             <button
               className="h-9 shrink-0 rounded-xl bg-[#53fc18] px-4 text-xs font-black text-black transition hover:bg-[#7cff4c] disabled:cursor-wait disabled:opacity-70 sm:h-10 sm:rounded-md sm:text-sm"
               type="button"
-              onClick={refreshStatus}
+              onClick={() => {
+                void refreshStatus();
+              }}
               disabled={isRefreshing || !isOnline}
             >
               {isOnline ? (isRefreshing ? "Refreshing" : "Refresh") : "Offline"}
@@ -687,6 +754,15 @@ export function Dashboard({ initialNow, initialStatus }: DashboardProps) {
             {filtered.map((item) => (
               <StreamerCard key={item.streamerId} now={now} status={item} action={getCardAction(item)} />
             ))}
+          </div>
+        ) : initialLoadState === "error" && !hasLoadedStatus ? (
+          <div className="grid min-h-[45vh] place-items-center rounded-lg border border-[#ff3030]/18 bg-[#101419] px-6 text-center">
+            <div>
+              <h2 className="text-2xl font-black text-white">Unable to load streams right now</h2>
+              <p className="mt-2 max-w-md text-sm font-semibold text-[#b8c0c9]">
+                We could not fetch the latest stream status yet. Try refreshing again in a moment.
+              </p>
+            </div>
           </div>
         ) : (
           <div className="grid min-h-[45vh] place-items-center rounded-lg border border-white/10 bg-[#101419] px-6 text-center">
