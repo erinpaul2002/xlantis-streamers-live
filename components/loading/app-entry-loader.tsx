@@ -2,22 +2,36 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import type { LoadingScreenId } from "@/components/loading/loading-screen-ids";
+import {
+  getAvailableLoadingScreenIds,
+  type LoadingScreenId,
+} from "@/components/loading/loading-screen-ids";
+import { useIsMobileLoadingViewport } from "@/components/loading/loading-screen-device";
 import { LoadingScreenRenderer } from "@/components/loading/loading-screen-renderer";
-import { loadingRevealDurations } from "@/components/loading/loading-screen-config";
+import { loadingMinimumDurations, loadingRevealDurations } from "@/components/loading/loading-screen-config";
 import type { LoadingScreenPhase } from "@/components/loading/loading-screen-types";
 import { useInitialLoadController } from "@/components/loading/initial-load-context";
 
-const initialLoadingScreenId: LoadingScreenId = 1;
-const minimumVisibleDurationMs = 450;
+const fallbackLoadingScreenId: LoadingScreenId = 1;
 
 export function AppEntryLoader() {
   const { isInitialLoadSettled } = useInitialLoadController();
   const pathname = usePathname();
-  const [animationId] = useState<LoadingScreenId>(initialLoadingScreenId);
+  const isMobileViewport = useIsMobileLoadingViewport();
+  const [animationId, setAnimationId] = useState<LoadingScreenId>(fallbackLoadingScreenId);
   const [phase, setPhase] = useState<LoadingScreenPhase | "hidden">("loading");
-  const [hasMinimumDelayElapsed, setHasMinimumDelayElapsed] = useState(false);
+  const [minimumDurationReadyAnimationId, setMinimumDurationReadyAnimationId] = useState<LoadingScreenId | null>(null);
   const shouldWaitForInitialStatus = pathname === "/";
+  const hasMinimumDurationElapsed = minimumDurationReadyAnimationId === animationId;
+
+  useEffect(() => {
+    const availableIds = getAvailableLoadingScreenIds(isMobileViewport);
+    const timer = window.setTimeout(() => {
+      setAnimationId(availableIds[Math.floor(Math.random() * availableIds.length)] ?? fallbackLoadingScreenId);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [isMobileViewport]);
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -30,14 +44,14 @@ export function AppEntryLoader() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setHasMinimumDelayElapsed(true);
-    }, minimumVisibleDurationMs);
+      setMinimumDurationReadyAnimationId(animationId);
+    }, loadingMinimumDurations[animationId]);
 
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [animationId]);
 
   useEffect(() => {
-    if (phase !== "loading" || !hasMinimumDelayElapsed) {
+    if (phase !== "loading" || !hasMinimumDurationElapsed) {
       return;
     }
 
@@ -50,7 +64,7 @@ export function AppEntryLoader() {
     }, 0);
 
     return () => window.clearTimeout(timer);
-  }, [phase, hasMinimumDelayElapsed, isInitialLoadSettled, shouldWaitForInitialStatus]);
+  }, [phase, hasMinimumDurationElapsed, isInitialLoadSettled, shouldWaitForInitialStatus]);
 
   useEffect(() => {
     if (phase !== "revealing") {
